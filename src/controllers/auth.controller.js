@@ -1,6 +1,7 @@
 import {User} from "../models/User.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import jwt from 'jsonwebtoken'
 
 
 export const registerUser = asyncHandler(async (req,res)=>{
@@ -69,5 +70,29 @@ export const logoutUser = asyncHandler(async(req,res)=>{
     }})
 
     return res.status(200).clearCookie('refreshToken',{httpOnly:true, secure: process.env.NODE_ENV=='production' })
-    .json(new ApiResponse(200, "User logged successfully!"))
+    .json(new ApiResponse(200, "User logged out successfully!"))
+})
+
+
+export const refreshAccessToken = asyncHandler(async(req,res)=>{
+    const token = req.cookies?.refreshToken;
+
+    if(!token)
+        return res.status(401).json(new ApiResponse(401, 'No refresh token provided'));
+
+    let decoded;
+    try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET_TOKEN);
+    } catch(err) {
+        return res.status(401).json(new ApiResponse(401, 'Invalid or expired refresh token'));
+    }
+
+    const user = await User.findById(decoded.id);
+
+    if(!user || user.refreshToken !== token)
+        return res.status(401).json(new ApiResponse(401, 'Refresh token mismatch — please log in again'));
+
+    const accessToken = user.generateAccessToken();
+
+    return res.status(200).json(new ApiResponse(200, 'Access token refreshed', { accessToken }));
 })

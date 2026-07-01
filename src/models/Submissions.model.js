@@ -1,33 +1,103 @@
 import mongoose,{Schema} from "mongoose";
 
 const analysisSchema = new Schema({
-    timeComplexity:
-    {
-        type:String,
+    timeComplexity: { 
+        type: String, 
+        required: true
+    }, 
+    spaceComplexity: { 
+        type: String, 
         required: true
     },
-    spaceComplexity:
-    {
-        type:String,
+    codeMetrics: {
+        style: {
+            rating: { 
+                type: String, 
+                enum: ['EXCELLENT', 'ACCEPTABLE', 'NEEDS_IMPROVEMENT'],
+                required: true 
+            },
+            feedback: { 
+                type: String, 
+                required: true
+            }
+        },
+        approach: {
+            rating: { 
+                type: String, 
+                enum: ['OPTIMAL', 'SUBOPTIMAL', 'INCORRECT'],
+                required: true 
+            },
+            feedback: { 
+                type: String, 
+                required: true
+            }
+        },
+        _id: false
+    },
+    severity: {
+        type: String,
+        enum: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'],
         required: true
     },
-    codeStyle:
-    {
-        type:String,
-        required: true
+    performanceWarning: {
+        willTLE: { 
+            type: Boolean, 
+            required: true
+        },
+        thresholdInputSize: { 
+            type: String,
+            required: false
+        },
+        symptom: { 
+            type: String,
+            required: false
+        },
+        _id: false
     },
-    codeApproach:
-    {
-        type:String,
-        required: true
-    }
-},{
-    _id: false //dont generate another id for this
-})
+    topics: {
+        type: [String],
+        default: []
+    },
+    hints: [{
+        level: { 
+            type: Number, 
+            enum: [1, 2, 3],
+            required: true
+        },
+        category: { 
+            type: String, 
+            enum: [
+                'LOGIC_ERROR',
+                'TIME_COMPLEXITY',
+                'SPACE_COMPLEXITY',
+                'EDGE_CASE',
+                'ALGORITHMIC_PATTERN',
+                'DATA_STRUCTURE',
+                'OPTIMIZATION_TECHNIQUE',
+                'CONSTRAINT_AWARENESS'
+            ],
+            required: true 
+        },
+        clue: { 
+            type: String, 
+            required: true
+        },
+        guidingQuestion: { 
+            type: String, 
+            required: true
+        },
+        _id: false
+    }],
+     
+    },
+{
+    _id: false
+});
+
 
 
 const SubmissionSchema = new Schema({
-    userID:
+    userId:
     {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -55,6 +125,11 @@ const SubmissionSchema = new Schema({
     {
         type:analysisSchema,
         default: null
+    },
+    hintsUsed:
+    {
+        type: Number,
+        default: 0
     }
 },
 {
